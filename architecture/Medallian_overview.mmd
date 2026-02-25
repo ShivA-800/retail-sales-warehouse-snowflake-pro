@@ -1,46 +1,59 @@
+```mermaid
 flowchart LR
 
 %% ================= SOURCES =================
 subgraph Sources [INGESTION SOURCES]
-    SRC1[Landing Zone\nS3 / ADLS\nCSV / JSON]
-    SRC2[Operational DB\nPostgres / CDC]
+    SRC1[Landing Zone S3 ADLS CSV JSON]
+    SRC2[Operational DB Postgres CDC]
 end
 
-%% ================= BRONZE =================
-subgraph Bronze [Bronze - Raw]
-    B1[Ingestion Job]
-    B2[Persistent Storage]
-end
+%% ================= DATA WAREHOUSE =================
+subgraph DWH [DATA WAREHOUSING]
 
-Gate1{Validation}
+    %% Bronze
+    subgraph Bronze [Bronze Raw Layer]
+        B1[Ingestion Job]
+        B2[Raw Persistent Storage]
+        B3[Append Only]
+        B4[Schema On Read]
+    end
 
-%% ================= SILVER =================
-subgraph Silver [Silver - Enriched]
-    S1[Refining Logic]
-    S2[Cleansed Data\nDe-duplicated\nUnified Schema]
-end
+    Gate1{Validation}
 
-Gate2{KPI Check}
+    %% Silver
+    subgraph Silver [Silver Enriched Layer]
+        S1[Refining Logic]
+        S2[Cleansed Data]
+        S3[Deduplication]
+        S4[Unified Schema]
+    end
 
-%% ================= GOLD =================
-subgraph Gold [Gold - Curated]
-    G1[Aggregated Hub\nDim / Fact\nSemantic Layer]
+    Gate2{KPI Check}
+
+    %% Gold
+    subgraph Gold [Gold Curated Layer]
+        G1[Aggregated Hub]
+        G2[Dim Fact Models]
+        G3[Semantic Layer]
+    end
+
 end
 
 %% ================= CONSUMPTION =================
-subgraph Consume [Consumption]
-    C1[Executive BI\nTableau / PowerBI]
-    C2[Data Science\nJupyter / MLFlow]
-    C3[Reverse ETL\nSync to CRM]
+subgraph Consume [CONSUMPTION]
+    C1[Executive BI Tableau PowerBI]
+    C2[Data Science Jupyter MLFlow]
+    C3[Reverse ETL Sync CRM]
 end
 
 %% ================= FLOW =================
 SRC1 --> B1
 SRC2 --> B1
-B1 --> B2
-B2 --> Gate1 --> S1 --> S2
-S2 --> Gate2 --> G1
+B1 --> B2 --> Gate1
+Gate1 --> S1 --> S2 --> Gate2
+Gate2 --> G1
 
 G1 --> C1
 G1 --> C2
 G1 --> C3
+```
